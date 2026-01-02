@@ -1,0 +1,11 @@
+﻿@model Projekt.Models.Question
+
+
+<h2>Stwórz pytanie dla ankiety: @ViewData["Title"].</h2>
+
+<form asp-controller="Survey" asp-action="CreateSurveyTitle" method="post">
+    <div asp-validation-summary="All"></div>
+    Podaj treść pytania:<input type="text" asp-for="Content" />
+</form>
+
+@ViewBag.info

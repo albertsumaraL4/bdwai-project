@@ -1,0 +1,28 @@
+﻿@model Projekt.Models.User
+
+@{
+    ViewData["Title"] = "Registration";
+}
+
+<h2>Rejestracja</h2>
+<form asp-controller="Registration" asp-action="Registration" method="post">
+
+    <div asp-validation-summary="All"></div>
+    Imie<input type="text" asp-for="Name" /><br />
+    Nazwisko<input type="text" asp-for="Surname" /><br />
+    Nazwa użytkownika<input type="text" asp-for="Username" /><br />
+    E-Mail<input type="email" asp-for="Email" /><br />
+    Hasło<input type="password" asp-for="Password" /><br />
+    Potwierdź Hasło<input type="password" asp-for="RepeatPassword" /><br />
+    Numer Telefonu<input type="tel" asp-for="Number" /><br />
+    Wiek<input type="number" asp-for="Age" /><br />
+    Miasto 
+        <select asp-for="Town" asp-items="Html.GetEnumSelectList<User.Miasta>()">
+        </select>
+    <br/>
+        <input type="submit" />
+    <br/>
+        <button type="reset" class="btn btn-secondary">Wyczyść</button>
+</form>
+
+@ViewBag.info

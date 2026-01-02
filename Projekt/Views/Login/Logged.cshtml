@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Zalogowano";
+}
+
+<h2>Zalogowano!</h2>
+<p>Witaj, @ViewData["Username"]!</p>
+<form asp-controller="Login" asp-action="Logout" id="logout" method="post">
+    <button type="submit">
+        Wyloguj
+    </button>
+</form>

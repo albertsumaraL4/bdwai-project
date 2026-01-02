@@ -1,0 +1,19 @@
+﻿@model Projekt.Models.LoginUser
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h2>Logowanie</h2>
+<form asp-controller="Login" asp-action="Login" method="post">
+
+    <div asp-validation-summary="All"></div>
+    Nazwa użytkownika<input type="text" asp-for="Username" /><br />
+    Hasło<input type="password" asp-for="Password" /><br />
+    <br />
+    <input type="submit" />
+    <br />
+    <button type="reset" class="btn btn-secondary">Wyczyść</button>
+</form>
+
+@ViewBag.info
