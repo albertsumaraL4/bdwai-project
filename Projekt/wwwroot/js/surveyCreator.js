@@ -12,67 +12,94 @@ const question = {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    const surveyTitleDiv = document.getElementById("survey-title");
+    //const surveyTitleDiv = document.getElementById("survey-title");
+    const errorDiv = document.createElement("div");
+    errorDiv.id = "error";
 
 
-    document.getElementById("setTitleBtn").addEventListener("click", () => {
+    document.getElementById("setTitleBtn").addEventListener("click", async () => {
+        clearError();
         const titleInput = document.getElementById("surveyTitle");
         const title = titleInput.value.trim();
-
         //titleInput.textContent = "Dalej";
 
-        if (!title) {
-            alert("Title cannot be empty!");
+
+        if (await checkTitle(title)){
+            showError("The title is already taken.");
             return;
         }
 
-        if (title.length > 10) {
-            alert("Title cannot exceed 10 characters!");
+        if (!title) {
+            showError("Title cannot be empty!");
+
+            return;
+        }
+
+        if (title.length < 3) {
+            showError("Title must have at least 3 characters!");
+
+
             return;
         }
 
         survey.title = titleInput.value;
-        console.log(survey); 
+        titleInput.value = "";
+        console.log(survey);
 
-        window.location.href = "/Survey/CreateSurveyQuestion";
+        //window.location.href = "/Survey/CreateSurveyQuestion";
+
+        document.getElementById("step-title").style.display = "none";
+        document.getElementById("step-question").style.display = "block";
 
     });
 
 
     document.getElementById("setQuestionContentBtn").addEventListener("click", () => {
+        clearError();
         const questionContentInput = document.getElementById("surveyQuestionContent");
         const questionContent = questionContentInput.value.trim();
+        questionContentInput.value = "";
 
         //questionContentInput.textContent = "Dalej";
 
+        console.log(survey);
+        console.log(question);
+
         if (!questionContent) {
-            alert("Content of question cannot be empty!");
+            showError("Content of question cannot be empty!");
             return;
         }
 
-        if (questionContent.length > 10) {
-            alert("Content of question cannot exceed 10 characters!");
+        if (questionContent.length < 8) {
+            showError("Title must have at least 8 characters!");
             return;
         }
 
         question.content = questionContentInput.value;
         questionContentInput.value = "";
 
+
+        document.getElementById("step-question").style.display = "none";
+        document.getElementById("step-answer").style.display = "block";
+
         //console.log(survey);
 
-        window.location.href = "/Survey/CreateSurveyAnswer";
+        //window.location.href = "/Survey/CreateSurveyAnswer";
 
     });
 
     document.getElementById("setAnswerContentBtn").addEventListener("click", () => {
+        clearError();
         const answerContentInput = document.getElementById("surveyAnswerContent");
         const answerContent = answerContentInput.value.trim();
+        answerContentInput.value = "";
 
         //answerContentInput.textContent = "Dodaj odpowiedź";
 
 
         if (!answerContent) {
-            alert("Content of answer cannot be empty!");
+            showError("Content of answer cannot be empty!");
+
             return;
         }
 
@@ -85,19 +112,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         answerContentInput.value = "";
 
-        window.location.href = "/Survey/CreateSurveyAnswer";
+        //window.location.href = "/Survey/CreateSurveyAnswer";
 
     });
 
 
     document.getElementById("setQuestion").addEventListener("click", () => {
-        const questionInput = document.getElementById("surveyQuestionAdd");
-
+        clearError();
         //questionInput.textContent = "Dodaj następne pytanie";
 
 
         if (question.answers.length < 2) {
-            alert("Question must have at least 2 answers!");
+            showError("Question must have at least 2 answers!");
+
             //window.location.href = "/Survey/CreateSurveyAnswer";
             return;
         }
@@ -107,148 +134,96 @@ document.addEventListener("DOMContentLoaded", function () {
         question.content = "";
         question.answers = [];
 
-        window.location.href = "/Survey/CreateSurveyQuestion";
+        //document.getElementById("step-answer").style.display = "none";
+        //document.getElementById("step-question").style.display = "block";
+        //window.location.href = "/Survey/CreateSurveyQuestion";
+    });
 
+    document.getElementById("setSurvey").addEventListener("click", () => {
+        clearError();
+        //questionInput.textContent = "Dodaj następne pytanie";
+
+
+        if (survey.questions.length < 1) {
+            showError("Survey must have at least 1 question!");
+
+
+            //window.location.href = "/Survey/CreateSurveyAnswer";
+            return;
+        }
+
+        submitSurvey();
+
+        survey.title = "";
+        survey.questions = [];
+
+        document.getElementById("step-answer").style.display = "none";
+        document.getElementById("step-title").style.display = "block";
+
+        //window.location.href = "/Survey/CreateSurveyQuestion";
+    });
+
+    document.getElementById("backToQuestion").addEventListener("click", () => {
+        clearError();
+        document.getElementById("step-answer").style.display = "none";
+        document.getElementById("step-question").style.display = "block";
+        question.content = "";
+    });
+
+    document.getElementById("backToTitle").addEventListener("click", () => {
+        clearError();
+        document.getElementById("step-question").style.display = "none";
+        document.getElementById("step-title").style.display = "block";
+        survey.title = "";
     });
 
 
-//document.addEventListener("DOMContentLoaded", function () {
-//    const questionListDiv = document.getElementById("question-list");
 
-//    getSurveyId().then(surveyId => {
-//        //console.log(surveyId);
-//        if (!surveyId) return;
-//        CurrentSurvey = surveyId;
+});
 
-//        fetch(`/SurveyResults/GetResults?surveyId=${surveyId}`)
-//            .then(response => {
-//                if (!response.ok) throw new Error("Network Error");
-//                return response.json();
-//            })
-//            .then(questions => {
+function submitSurvey() {
 
-//                console.log(questions);
+    fetch("/Survey/Results", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(survey)
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Survey saved successfully! ID: " + data.surveyId);
+                //window.location.href = "/Survey/SurveyCreator";
+            } else {
+                showError("Error saving survey");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showError("Something went wrong!");
+        });
+}
 
-//            });
+function showError(message) {
+    const errorDiv = document.getElementById("error");
+    errorDiv.style.color = "red";
+    errorDiv.textContent = message;
+}
 
-//        fetch(`/Survey/ListQuestions?surveyId=${surveyId}`)
-//            .then(response => {
-//                if (!response.ok) throw new Error("Network Error");
-//                return response.json();
-//            })
-//            .then(questions => {
-//                questionListDiv.innerHTML = "";
+function clearError() {
+    const errorDiv = document.getElementById("error");
+    errorDiv.textContent = "";
+}
 
-//                const answersForm = document.createElement("form");
+async function checkTitle(titleInput) {
+    try {
+        const response = await fetch("/Survey/ListSurveysTitles");
+        const titles = await response.json();
 
-//                const submitButton = document.createElement("button");
-
-//                answersForm.id = "form";
-
-//                submitButton.type = "submit";
-
-//                submitButton.textContent = "Zatwierdź";
-
-//                answersForm.addEventListener("submit", (event) => onSubmit(event, surveyId));
-
-//                answersForm.setAttribute("id", "answer-picker");
-
-//                questions.forEach(question => {
-//                    //console.log(question);
-
-//                    const questionDiv = document.createElement("div");
-//                    const questionTitle = document.createElement("h4");
-//                    questionTitle.textContent = question.content;
-//                    questionDiv.appendChild(questionTitle);
-//                    answersForm.appendChild(questionDiv);
-
-
-//                    listAnswers(question.id, questionDiv);
-
-//                    //    questionDiv.appendChild(document.createElement("br"));
-//                });
-
-//                answersForm.appendChild(submitButton);
-
-//                questionListDiv.appendChild(answersForm);
-
-//            })
-//            .catch(error => console.error("Error fetching questions:", error));
-//    });
-//});
-
-//function getSurveyId() {
-//    return fetch('/Survey/GetChoosenSurvey')
-//        .then(res => res.json())
-//        .then(data => {
-//            //console.log(data);
-//            if (data.surveyId > 0) {
-//                //console.log("Aktualna ankieta:", data.surveyId);
-//                return data.surveyId;
-//            } else {
-//                return null;
-//            }
-//        });
-//}
-
-//function listAnswers(questionId, containerDiv) {
-//    fetch(`/Survey/ListAnswers?questionId=${questionId}`)
-//        .then(response => response.json())
-//        .then(answers => {
-//            //containerDiv.innerHTML = "";
-//            //console.log(answers);
-//            answers.forEach(answer => {
-//                //console.log(answer);
-//                const input = document.createElement("input");
-//                const label = document.createElement("label");
-//                const br = document.createElement("br");
-
-//                input.setAttribute("type", "radio");
-//                input.setAttribute("name", questionId);
-//                input.setAttribute("value", answer.id);
-
-//                //input.textContent = answer.content;
-
-//                label.appendChild(input);
-//                label.append(answer.content);
-
-//                containerDiv.appendChild(label);
-//                containerDiv.appendChild(br);
-//            });
-//        })
-//        .catch(error => console.error("Error fetching answers:", error));
-//}
-
-
-//function onSubmit(event, surveyId) {
-
-//    event.preventDefault();
-
-//    const formData = new FormData(event.target);
-
-//    console.dir(formData);
-
-//    fetch(`/SurveyResults/Results`, {
-
-//        method: "POST",
-
-//        headers: {
-//            'Content-Type': 'application/json',
-//            'Accept': 'application/json'
-//        },
-//        body: JSON.stringify({
-
-//            surveyId: surveyId,
-//            ChoosenAnswers: Array.from(formData.entries().map(([key, value]) => ({ questionId: key, answerId: value })))
-//        })
-
-
-//    })
-
-//    //console.log(event.target);
-
-
-
-
-
-//}
+        return titles.includes(titleInput);
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
+}

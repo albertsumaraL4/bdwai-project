@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Projekt.Data;
 using Projekt.Models;
+using System.Text.Json;
 
 namespace Projekt.Controllers
 {
@@ -18,77 +19,113 @@ namespace Projekt.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult CreateSurveyTitle()
-        {
-            return View("SurveyCreator");
-        }
-
         [HttpPost]
-        public IActionResult CreateSurveyTitle(Survey model)
+        public IActionResult Results([FromBody] JsonElement surveyJson)
         {
-            _context.Surveys.Add(model);
-            _context.SaveChanges();
+            var title = surveyJson.GetProperty("title").GetString();
 
-            HttpContext.Session.SetInt32("SurveyId", model.Id);
-            TempData["SurveyId"] = model.Id;
+            if (string.IsNullOrEmpty(title))
+                return BadRequest("Title is required");
 
-            return RedirectToAction("CreateSurveyQuestion");
+            var survey = new Survey { Title = title! };
 
-        }
-
-        [HttpGet]
-        public IActionResult CreateSurveyQuestion()
-        {
-            return View("SurveyQuestionCreator");
-        }
-
-        [HttpPost]
-        public IActionResult CreateSurveyQuestion(String content)
-        {
-
-            var question = new Question
+            foreach (var questionJson in surveyJson.GetProperty("questions").EnumerateArray())
             {
-                Content = content,
-                SurveyId = (int)HttpContext.Session.GetInt32("SurveyId")
+                var question = new Question
+                {
+                    Content = questionJson.GetProperty("content").GetString()!
+                };
 
-            };
+                foreach (var answerJson in questionJson.GetProperty("answers").EnumerateArray())
+                {
+                    var answer = new Answer
+                    {
+                        Content = answerJson.GetString()!
+                    };
+                    question.Answers.Add(answer);
+                }
 
-            
+                survey.Questions.Add(question);
+            }
 
-            _context.Questions.Add(question);
+            _context.Surveys.Add(survey);
             _context.SaveChanges();
 
-            HttpContext.Session.SetInt32("QuestionId", question.Id);
-
-            return View("SurveyAnswerCreator");
-
+            return Ok(new { success = true });
         }
 
-        [HttpGet]
-        public IActionResult CreateSurveyAnswer()
-        {
-            return View("SurveyAnswerCreator");
-        }
 
-        [HttpPost]
-        public IActionResult CreateSurveyAnswer(String content)
-        {
+        //[HttpGet]
+        //public IActionResult CreateSurveyTitle()
+        //{
+        //    return View("SurveyCreator");
+        //}
 
-            var answer = new Answer
-            {
-                Content = content,
-                QuestionId = (int)HttpContext.Session.GetInt32("QuestionId")
+        //[HttpPost]
+        //public IActionResult CreateSurveyTitle(Survey model)
+        //{
+        //    _context.Surveys.Add(model);
+        //    _context.SaveChanges();
 
-            };
+        //    HttpContext.Session.SetInt32("SurveyId", model.Id);
+        //    TempData["SurveyId"] = model.Id;
+
+        //    return RedirectToAction("CreateSurveyQuestion");
+
+        //}
+
+        //[HttpGet]
+        //public IActionResult CreateSurveyQuestion()
+        //{
+        //    return View("SurveyQuestionCreator");
+        //}
+
+        //[HttpPost]
+        //public IActionResult CreateSurveyQuestion(String content)
+        //{
+
+        //    var question = new Question
+        //    {
+        //        Content = content,
+        //        SurveyId = (int)HttpContext.Session.GetInt32("SurveyId")
+
+        //    };
 
 
-            _context.Answers.Add(answer);
-            _context.SaveChanges();
 
-            return View("SurveyAnswerCreator");
+        //    _context.Questions.Add(question);
+        //    _context.SaveChanges();
 
-        }
+        //    HttpContext.Session.SetInt32("QuestionId", question.Id);
+
+        //    return View("SurveyAnswerCreator");
+
+        //}
+
+        //[HttpGet]
+        //public IActionResult CreateSurveyAnswer()
+        //{
+        //    return View("SurveyAnswerCreator");
+        //}
+
+        //[HttpPost]
+        //public IActionResult CreateSurveyAnswer(String content)
+        //{
+
+        //    var answer = new Answer
+        //    {
+        //        Content = content,
+        //        QuestionId = (int)HttpContext.Session.GetInt32("QuestionId")
+
+        //    };
+
+
+        //    _context.Answers.Add(answer);
+        //    _context.SaveChanges();
+
+        //    return View("SurveyAnswerCreator");
+
+        //}
 
         [HttpGet]
         public IActionResult SurveyChooser()
@@ -156,6 +193,18 @@ namespace Projekt.Controllers
             return Json(answers);
         }
 
+        [HttpGet]
+        public IActionResult ListSurveysTitles()
+        {
+            var surveysTitles = _context.Surveys
+                .Select(s => s.Title)
+                .ToList();
+
+            return Json(surveysTitles);
+
+        }
+
+        
 
     }
 }

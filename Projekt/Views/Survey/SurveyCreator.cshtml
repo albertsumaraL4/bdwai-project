@@ -4,13 +4,56 @@
     ViewData["Title"] = "SurveyCreator";
 }
 
-<h2>Stwórz Ankietę</h2>
 
-<form asp-controller="Survey" asp-action="CreateSurveyTitle" method="post">
-    <div asp-validation-summary="All"></div>
-    Podaj tytuł ankiety:<input type="text" asp-for="Title" />
-    </br>
-    <button type="submit">Przejdź dalej</button>
-</form>
+<style>
+    /* Ukrywanie wszystkich kroków poza pierwszym */
+    .step {
+        display: none;
+    }
+    .step.active {
+        display: block;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+    }
+    input[type="text"] {
+        width: 300px;
+        padding: 5px;
+    }
+    button {
+        margin-top: 10px;
+        padding: 5px 10px;
+    }
+</style>
+
+
+
+<div id="step-title" class="step active">
+    <h2>Podaj tytuł ankiety:</h2>
+    <input type="text" id="surveyTitle" placeholder="tytuł">
+    <button id="setTitleBtn">Dalej</button>
+</div>
+
+<div id="step-question" class="step">
+    <h2>Podaj treść pytania:</h2>
+    <input type="text" id="surveyQuestionContent" placeholder="pytanie">
+    <button id="setQuestionContentBtn">Dalej</button>
+    <button id="backToTitle">Cofnij</button>
+</div>
+
+<div id="step-answer" class="step">
+    <h2>Dodaj odpowiedź</h2>
+    <input type="text" id="surveyAnswerContent" placeholder="odpowiedź">
+    <button id="setAnswerContentBtn">Dodaj odpowiedź</button>
+    <button id="setQuestion">Zapisz pytanie.</button>
+    <button id="setSurvey">Zapisz ankietę.</button>
+    <button id="backToQuestion">Cofnij/Następne pytanie.</button>
+
+</div>
+<div id="error"></div>
+
+<script src="~/js/surveyCreator.js"></script>
+
 
 @ViewBag.info

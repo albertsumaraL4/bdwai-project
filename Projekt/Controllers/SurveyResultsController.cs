@@ -19,6 +19,13 @@ namespace Projekt.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult SurveyStatsChooser()
+        {
+
+            return View();
+
+        }
 
         [HttpPost]
         public IActionResult Results([FromBody] SurveyResults surveyResults)
@@ -61,12 +68,44 @@ namespace Projekt.Controllers
 
             if (surveyResult == null)
             {
-
                 return NotFound();
             }
 
             return Json(surveyResult);
+        }
 
+
+        [HttpGet]
+        public IActionResult SurveyStats()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult GetStats(int surveyId)
+        {
+           
+            if (surveyId == 0)
+            {
+                return BadRequest();
+            }
+
+            var surveyResults = _context.SurveyResults
+                .Where(sr => sr.SurveyId == surveyId)
+                .SelectMany(sr => sr.ChoosenAnswers)
+                .ToList();
+
+            var stats = surveyResults
+                .GroupBy(ca => new { ca.QuestionId, ca.AnswerId })
+                .Select(g => new { g.Key.QuestionId, g.Key.AnswerId, Count = g.Count() })
+                .ToList()
+                .GroupBy(x => x.QuestionId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.ToDictionary(x => x.AnswerId, x => x.Count)
+                );
+
+            return Json(stats);
 
         }
 
