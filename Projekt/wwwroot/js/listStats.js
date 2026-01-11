@@ -1,9 +1,10 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿document.addEventListener("DOMContentLoaded", async function () {
     const questionListDiv = document.getElementById("question-list");
 
-    getSurveyId().then(surveyId => {
-        if (!surveyId) return;
-        CurrentSurvey = surveyId;
+    const surveyId = await getSurveyId();
+    if (!surveyId) return;
+    CurrentSurvey = surveyId;
+    const stats = await getStats(CurrentSurvey);
 
         fetch(`/SurveyResults/GetResults?surveyId=${surveyId}`)
             .then(response => {
@@ -12,7 +13,7 @@
             })
             .then(questions => {
 
-                console.log(questions);
+                //console.log(questions);
 
             });
 
@@ -32,15 +33,13 @@
                     questionDiv.appendChild(questionTitle);
                     questionListDiv.appendChild(questionDiv);
 
-
-                    listAnswers(question.id, questionDiv);
+                    listAnswers(question.id, questionDiv, stats[question.id]);
 
                 });
 
             })
             .catch(error => console.error("Error fetching questions:", error));
     });
-});
 
 function getSurveyId() {
     return fetch('/Survey/GetChoosenSurvey')
@@ -54,15 +53,36 @@ function getSurveyId() {
         });
 }
 
-function listAnswers(questionId, containerDiv) {
+function listAnswers(questionId, containerDiv, answerStats) {
     fetch(`/Survey/ListAnswers?questionId=${questionId}`)
         .then(response => response.json())
         .then(answers => {
+
+            let total = 0;
+            for (const answerId in answerStats) {
+                total += answerStats[answerId];
+            }
+
             answers.forEach(answer => {
 
                 const paragraph = document.createElement("p");
                 paragraph.textContent = answer.content;
 
+                const strong = document.createElement("strong")
+
+                if (answer.id in answerStats) {
+
+                    console.log("jest");
+                   strong.textContent = `    ${Math.round(answerStats[answer.id] / total * 100)}%`
+
+
+                }
+
+                else {
+                    strong.textContent = `    0%`
+                }
+
+                paragraph.appendChild(strong);
                 containerDiv.appendChild(paragraph);
 
 
@@ -71,3 +91,14 @@ function listAnswers(questionId, containerDiv) {
         .catch(error => console.error("Error fetching answers:", error));
 }
 
+async function getStats(surveyId) {
+    try {
+        const response = await fetch(`/SurveyResults/GetStats?surveyId=${surveyId}`);
+        const stats = await response.json();
+        //console.log("stats", stats)
+        return stats;
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
+}

@@ -11,8 +11,11 @@ const question = {
 }
 
 
-document.addEventListener("DOMContentLoaded", function () {
+
+
+document.addEventListener("DOMContentLoaded", async function () {
     //const surveyTitleDiv = document.getElementById("survey-title");
+    const titles = await getTitles();
     const errorDiv = document.createElement("div");
     errorDiv.id = "error";
 
@@ -24,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
         //titleInput.textContent = "Dalej";
 
 
-        if (await checkTitle(title)){
+        if (checkTitle(titles, title)){
             showError("The title is already taken.");
             return;
         }
@@ -58,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
         clearError();
         const questionContentInput = document.getElementById("surveyQuestionContent");
         const questionContent = questionContentInput.value.trim();
-        questionContentInput.value = "";
+        //questionContentInput.value = "";
 
         //questionContentInput.textContent = "Dalej";
 
@@ -92,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
         clearError();
         const answerContentInput = document.getElementById("surveyAnswerContent");
         const answerContent = answerContentInput.value.trim();
-        answerContentInput.value = "";
+        //answerContentInput.value = "";
 
         //answerContentInput.textContent = "Dodaj odpowiedź";
 
@@ -216,14 +219,20 @@ function clearError() {
     errorDiv.textContent = "";
 }
 
-async function checkTitle(titleInput) {
+async function getTitles() {
     try {
         const response = await fetch("/Survey/ListSurveysTitles");
         const titles = await response.json();
-
-        return titles.includes(titleInput);
+        console.log(titles)
+        return titles;
     } catch (err) {
         console.error(err);
         return false;
     }
+}
+
+function checkTitle(titles, title) {
+
+    return titles.includes(title);
+
 }
