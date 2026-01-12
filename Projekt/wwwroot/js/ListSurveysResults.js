@@ -2,7 +2,7 @@
 
     const surveyListDiv = document.getElementById("survey-list");
 
-    fetch('/SurveyResults/ListSurveys')
+    fetch('/SurveyResults/ListSurveysCompleted')
         .then(response => {
             if (!response.ok) throw new Error("Network Error");
             return response.json();
@@ -10,9 +10,20 @@
         .then(surveys => {
             surveyListDiv.innerHTML = "";
 
+            //surveys = null;
+
+            if (!surveys || surveys.length === 0) {
+
+                const paragraph = document.createElement("p");
+                paragraph.textContent = "Brak statystyk do wyświetlenia."
+                surveyListDiv.appendChild(paragraph);
+                return;
+
+            }
+
             surveys.forEach((survey) => {
 
-                isCompleted(survey.id).then(completed => {
+                //isCompleted(survey.id).then(completed => {
 
                     //console.log(survey);
 
@@ -20,7 +31,7 @@
                     //    return;
                     //}
 
-                    if (!completed) return;
+                    //if (!completed) return;
 
                     const button = document.createElement("button");
                     button.type = "button";
@@ -29,16 +40,18 @@
 
                     button.addEventListener("click", function () {
                         saveSurveyToSession(survey.id);
-                        window.location.href = `/SurveyResults/SurveyStats?surveyId=${survey.Id}`;
+                        //    window.location.href = `/SurveyResults/SurveyStats?surveyId=${survey.Id}`;
+                        window.location.href = `/SurveyResults/SurveyStatsFilter`;
+
                     });
 
                     surveyListDiv.appendChild(button);
                     const br = document.createElement("br");
                     surveyListDiv.appendChild(br);
-                });
+                //});
             })
         })
-        .catch(error => console.error("Error fetching surveys:", error));
+        //.catch(error => console.error("Error fetching surveys:", error));
 
                 
 });
@@ -59,17 +72,17 @@ function saveSurveyToSession(surveyId) {
 
 
 
-async function isCompleted(surveyId) {
+//async function isCompleted(surveyId) {
 
-    try {
-        const response = await fetch(`/SurveyResults/IsCompleted?surveyId=${surveyId}`);
-        const result = await response.json();
-        console.log(result);
-        return result;
-    } catch (err) {
-        console.error(err);
-        return;
-    }
+//    try {
+//        const response = await fetch(`/SurveyResults/IsCompleted?surveyId=${surveyId}`);
+//        const result = await response.json();
+//        console.log(result);
+//        return result;
+//    } catch (err) {
+//        console.error(err);
+//        return;
+//    }
     
 
-}
+//}

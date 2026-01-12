@@ -32,7 +32,25 @@ namespace Projekt.Controllers
 
         }
 
-        
+
+        [HttpGet]
+        public IActionResult ListSurveysCompleted()
+        {
+
+            var completedSurveys = _context.SurveyResults
+                .Select(sr => sr.SurveyId)
+                .Distinct()
+                .ToList();
+
+            var surveys = _context.Surveys
+                .Where(s => completedSurveys.Contains(s.Id))
+                .Select(s => new { s.Id, s.Title })
+                .ToList();
+
+            return Json(surveys);
+
+        }
+
         [HttpGet]
         public IActionResult ListSurveys()
         {
@@ -66,29 +84,18 @@ namespace Projekt.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetResults(int surveyId)
+        public IActionResult GetResults(int? surveyId)
         {
-
-
-            string? userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                return BadRequest();
-            }
-
-            var surveyResult = _context.SurveyResults
-                .Where(s => s.SurveyId == surveyId && s.UserId == userId)
+            var surveyResults = _context.SurveyResults
+                .Where(s => s.SurveyId == surveyId)
                 .OrderBy(a => a.Id)
                 .Include(s => s.ChoosenAnswers)
-                .FirstOrDefault();
+                .ToList();
 
-            if (surveyResult == null)
-            {
+            if (surveyResults.Count == 0)
                 return NotFound();
-            }
 
-            return Json(surveyResult);
+            return Json(surveyResults);
         }
 
 
@@ -145,6 +152,30 @@ namespace Projekt.Controllers
             Console.WriteLine("test: " + string.Join(", ", completedSurveys));
 
             return completedSurveys;
+
+        }
+
+        [HttpGet]
+        public IActionResult GetCities()
+        {
+
+            var cities = Enum.GetValues(typeof(ApplicationUser.Miasta))
+                .Cast<ApplicationUser.Miasta>()
+                .Select(c => new
+                {
+                    Id = (int)c,
+                    Name = c.ToString()
+                });
+
+            return Json(cities);
+
+        }
+
+        [HttpGet] 
+        public IActionResult SurveyStatsFilter()
+        {
+
+            return View();
 
         }
 
