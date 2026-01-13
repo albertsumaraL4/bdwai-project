@@ -87,18 +87,22 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const ageTo = Number(ageToInput.value);
                 const cityId = Number(select.value);
 
-                if (isNaN(ageFrom) || ageFrom < 18) {
-                    //alert("agefrom");
+
+                if (Number.isNaN(ageFrom) || ageFrom < 18 || ageFrom > 99) {
                     errorDiv.textContent = "Niepoprawna wartość dla wieku minimalnego.";
                     return;
                 }
 
-                if (isNaN(ageTo) || ageTo > 99) {
-                    //alert("ageto");
+                if (Number.isNaN(ageTo) || ageTo < 18 || ageTo > 99) {
                     errorDiv.textContent = "Niepoprawna wartość dla wieku maksymalnego.";
-
                     return;
                 }
+
+                if (ageFrom > ageTo) {
+                    errorDiv.textContent = "Wiek minimalny nie może być większy niż maksymalny.";
+                    return;
+                }
+
 
                 saveFiltersToSession(cityId, ageFrom, ageTo);
 
